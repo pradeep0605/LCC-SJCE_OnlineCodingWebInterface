@@ -1,0 +1,61 @@
+<center><h1>#EASY#</h1></center>
+
+<h4>There are <b>N</b> tweets on a page and each tweet can be opened by clicking on it, to see some statistics related to that tweet. Initially all
+the tweets are <i>closed</i>. Clicking on an open tweet closes it and clicking on a closed tweet opens it. There is also a button to close all
+he open tweets. Given a sequence of <b>K</b> clicks by <i>LCC Server</i>, You have to guess the total number of open tweets just after each click.</h4>
+
+<h2>INPUT:</h2>
+
+First line of the input contains an integer <b>T</b>, T test Cases follow.
+
+First line of each Test Case contains two integers 
+<b>N</b>, the number of tweets <i><b>(numbered 1 to N)</b></i>  and 
+<b>K</b>, the number of clicks respectively<i><b> (1 <= N, K <= 1000)</b></i>.
+
+Each of the following <b>K</b> lines has one of the following.
+
+    <b>CLICK X</b> , where <b>X</b> is the tweet number <b>(1 <= X <= N)</b>.
+    <b>CLOSEALL</b>
+
+<h2>OUTPUT:</h2>
+
+For each test case,
+Output <b>K</b> lines, where the i<sup>th</sup> line should contain the number of open tweets just after the i<sup>th</sup> click.
+(No separation is needed between outputs of each test case)
+
+<h2>EXAMPLE:</h2>
+
+<b>Input:</b>
+2
+3 6
+CLICK 1
+CLICK 2
+CLICK 3
+CLICK 2
+CLOSEALL
+CLICK 3
+3 2
+CLICK 2
+CLOSEALL
+
+<b>Output:</b>
+1
+2
+3
+2
+0
+1
+1
+0
+
+<b>EXPLANATION:</b>
+
+(Test Case 1)
+Let the numbers within braces represent the open tweet ids.
+
+CLICK 1 : { 1 }, open count = 1
+CLICK 2 : { 1, 2 }, open count = 2
+CLICK 3 : { 1, 2, 3 }, open count = 3
+CLICK 2 : { 1, 3 }, open count = 2
+CLOSEALL : { }, open count = 0
+CLICK 3 : { 1 }, open count = 1

@@ -1,0 +1,4 @@
+1. should use firefox only.
+2. should not allow caching.. So go to edit->preferences->advanced -> network tab .. set cache size to zero. and clear all the caches
+3. Other wise any updates in the website won't be reflected.
+

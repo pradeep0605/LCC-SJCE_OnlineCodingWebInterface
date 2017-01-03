@@ -1,0 +1,13 @@
+<html>
+<head> <title> frame testing </title></head>
+<FRAMESET border=1 rows="11%, 89%">
+	<FRAME src="WEB-INF/GeneralHeader.html"></FRAME>
+	<FRAMESET cols="80%, 20%">
+		<FRAME src="WEB-INF/prg1.question.html"></FRAME>
+		<FRAME src="WEB-INF/SubmissionStack.html"></FRAME>
+	</FRAMESET>
+   <NOFRAMES>
+   	  THIS SHIT WON't WORK
+   </NOFRAMES>
+</FRAMESET>
+</html>

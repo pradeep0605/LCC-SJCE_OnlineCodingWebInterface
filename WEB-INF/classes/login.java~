@@ -1,0 +1,23 @@
+import java.io.*;
+import java.lang.*;
+import javax.servlet.*;
+import javax.servlet.http.*;
+import javax.swing.*;
+
+
+
+public class Login extends HttpServlet
+{
+	public void doGet(HttpServletRequest req, HttpServletResponse res) 
+	{
+		PrintWriter pw;
+		try
+		{	
+			res.setContentType("text|html");
+			pw=res.getWriter();
+			String s="/usr/share/tomcat7/webapps/SJCE50/WEB-INF/classes/";
+			pw.print("<html>\n<title> Login </title> <body  background=black>\n");
+			pw.close();
+		}catch(Exception e){}
+	}
+}

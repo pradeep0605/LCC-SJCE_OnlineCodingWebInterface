@@ -1,0 +1,603 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html dir="ltr" lang="en">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8"> 
+	<title>DOMTab - Navigation tabs with CSS and DOMscripting</title>
+	<style type="text/css">
+		*{
+			margin:0;
+			padding:0;
+			list-style:none;
+			border:none;
+		}
+		body{
+			font-family:Verdana,Arial,Sans-Serif;
+			font-size:90%;
+			background:#333;
+			color:#ccc;
+		}
+		
+		div.domtab{
+			padding:0 3em;
+			width:80%;
+			font-size:90%;
+		}
+		ul.domtabs{
+			float:left;
+			width:100%;
+			margin:2em 0 0 0;				
+		}
+		ul.domtabs li{
+			float:left;
+			padding:0 .5em 0 0;
+		}
+		ul.domtabs a:link,
+		ul.domtabs a:visited,
+		ul.domtabs a:active,
+		ul.domtabs a:hover{
+			width:8em;
+			padding:.2em 1em;
+			display:block;
+			background:#666;
+			color:#ccc;
+			height:3em;
+			font-weight:bold;
+			text-decoration:none;
+		}
+		html>body ul.domtabs a:link,
+		html>body ul.domtabs a:visited,
+		html>body ul.domtabs a:active,
+		html>body ul.domtabs a:hover{
+			height:auto;
+			min-height:3em;
+		}
+		ul.domtabs a:hover{
+			background:#696;
+		}
+		div.domtab div{
+			clear:both;
+			width:auto;
+			background:#696;
+			color:#fff;
+			padding:1em 3em;
+		}
+		ul.domtabs li.active a:link,
+		ul.domtabs li.active a:visited,
+		ul.domtabs li.active a:active,
+		ul.domtabs li.active a:hover{
+			background:#696;
+			color:#fff;
+		}
+		#domtabprintview{
+			float:right;
+			padding-right:1em;
+			text-align:right;
+		}
+		#domtabprintview a:link,
+		#domtabprintview a:visited,
+		#domtabprintview a:active,
+		#domtabprintview a:hover{
+			color:#fff;
+		}
+		p{
+			margin:0 0 .5em 0;
+			line-height:1.3em;
+		}
+		h2{
+			font-size:1.3em;
+			color:#cfc;
+			text-transform:uppercase;
+			font-family:"Trebuchet MS",Arial,Sans-Serif;
+			padding:0 0 .7em .2em;
+		}
+		h1{
+			font-size:2em;
+			text-align:center;
+			font-weight:normal;
+			text-transform:uppercase;
+			font-family:"Trebuchet MS",Arial,Sans-Serif;
+			padding:.5em 0;
+			background:#000;
+			border-bottom:1px solid #666;
+		}
+		pre{
+			font-size:1.2em;
+			padding:1em;
+		}
+		div.domtab div a:link,
+		div.domtab div a:visited,
+		div.domtab div a:active
+		{
+			color:#fff;
+			display:block;
+			padding:1em .5em;
+			font-weight:bold;
+			font-size:1.3em;
+		}
+		div.domtab div h2 a,
+		div.domtab div h2 a:hover,
+		div.domtab div h2 a:active
+		{
+			color:#cfc;
+			display:inline;
+			padding:0;
+			font-weight:normal;
+			font-size:1em;
+		}
+		
+/* other scheme! */
+#other{
+	font-size:.8em;
+	margin-left:.3em;
+	width:60em;
+	margin-bottom:3em;
+	float:left;
+}
+div#other.domtab div{
+	clear:both;
+	width:54em;
+	background:#669;
+	color:#fff;
+	padding:1em 3em;
+}
+		
+#other ul.domtabs a:hover{
+	background:#669;
+}
+div#other ul.domtabs li.active a:link,
+div#other ul.domtabs li.active a:visited,
+div#other ul.domtabs li.active a:active,
+div#other ul.domtabs li.active a:hover{
+	background:#669;
+	color:#fff;
+}
+#other div{
+	float:left;
+}
+ul.prevnext{
+	float:left;
+	width:100%;
+}
+ul.prevnext li{
+	float:left;
+	width:49%;
+}
+ul.prevnext li.next{
+	float:right;
+	text-align:right;
+}
+	</style>
+	<script type="text/javascript">
+
+domtab={
+	tabClass:'domtab', // class to trigger tabbing
+	listClass:'domtabs', // class of the menus
+	activeClass:'active', // class of current link
+	contentElements:'div', // elements to loop through
+	backToLinks:/#top/, // pattern to check "back to top" links
+	printID:'domtabprintview', // id of the print all link
+	showAllLinkText:'show all content', // text for the print all link
+	prevNextIndicator:'doprevnext', // class to trigger prev and next links
+	prevNextClass:'prevnext', // class of the prev and next list
+	prevLabel:'previous', // HTML content of the prev link
+	nextLabel:'next', // HTML content of the next link
+	prevClass:'prev', // class for the prev link
+	nextClass:'next', // class for the next link
+	init:function(){
+		var temp;
+		if(!document.getElementById || !document.createTextNode){return;}
+		var tempelm=document.getElementsByTagName('div');		
+		for(var i=0;i<tempelm.length;i++){
+			if(!domtab.cssjs('check',tempelm[i],domtab.tabClass)){continue;}
+			domtab.initTabMenu(tempelm[i]);
+			domtab.removeBackLinks(tempelm[i]);
+			if(domtab.cssjs('check',tempelm[i],domtab.prevNextIndicator)){
+				domtab.addPrevNext(tempelm[i]);
+			}
+			domtab.checkURL();
+		}
+		if(document.getElementById(domtab.printID) 
+		   && !document.getElementById(domtab.printID).getElementsByTagName('a')[0]){
+			var newlink=document.createElement('a');
+			newlink.setAttribute('href','#');
+			domtab.addEvent(newlink,'click',domtab.showAll,false);
+			newlink.onclick=function(){return false;} // safari hack
+			newlink.appendChild(document.createTextNode(domtab.showAllLinkText));
+			document.getElementById(domtab.printID).appendChild(newlink);
+		}
+	},
+	checkURL:function(){
+		var id;
+		var loc=window.location.toString();
+		loc=/#/.test(loc)?loc.match(/#(\w.+)/)[1]:'';
+		if(loc==''){return;}
+		var elm=document.getElementById(loc);
+		if(!elm){return;}
+		var parentMenu=elm.parentNode.parentNode.parentNode;
+		parentMenu.currentSection=loc;
+		parentMenu.getElementsByTagName(domtab.contentElements)[0].style.display='none';
+		domtab.cssjs('remove',parentMenu.getElementsByTagName('a')[0].parentNode,domtab.activeClass);
+		var links=parentMenu.getElementsByTagName('a');
+		for(i=0;i<links.length;i++){
+			if(!links[i].getAttribute('href')){continue;}
+			if(!/#/.test(links[i].getAttribute('href').toString())){continue;}
+			id=links[i].href.match(/#(\w.+)/)[1];
+			if(id==loc){
+				var cur=links[i].parentNode.parentNode;
+				domtab.cssjs('add',links[i].parentNode,domtab.activeClass);
+				break;
+			}
+		}
+		domtab.changeTab(elm,1);
+		elm.focus();
+		cur.currentLink=links[i];
+		cur.currentSection=loc;
+	},
+	showAll:function(e){
+		document.getElementById(domtab.printID).parentNode.removeChild(document.getElementById(domtab.printID));
+		var tempelm=document.getElementsByTagName('div');		
+		for(var i=0;i<tempelm.length;i++){
+			if(!domtab.cssjs('check',tempelm[i],domtab.tabClass)){continue;}
+			var sec=tempelm[i].getElementsByTagName(domtab.contentElements);
+			for(var j=0;j<sec.length;j++){
+				sec[j].style.display='block';
+			}
+		}
+		var tempelm=document.getElementsByTagName('ul');		
+		for(i=0;i<tempelm.length;i++){
+			if(!domtab.cssjs('check',tempelm[i],domtab.prevNextClass)){continue;}
+			tempelm[i].parentNode.removeChild(tempelm[i]);
+			i--;
+		}
+		domtab.cancelClick(e);
+	},
+	addPrevNext:function(menu){
+		var temp;
+		var sections=menu.getElementsByTagName(domtab.contentElements);
+		for(var i=0;i<sections.length;i++){
+			temp=domtab.createPrevNext();
+			if(i==0){
+				temp.removeChild(temp.getElementsByTagName('li')[0]);
+			}
+			if(i==sections.length-1){
+				temp.removeChild(temp.getElementsByTagName('li')[1]);
+			}
+			temp.i=i; // h4xx0r!
+			temp.menu=menu;
+			sections[i].appendChild(temp);
+		}
+	},
+	removeBackLinks:function(menu){
+		var links=menu.getElementsByTagName('a');
+		for(var i=0;i<links.length;i++){
+			if(!domtab.backToLinks.test(links[i].href)){continue;}
+			links[i].parentNode.removeChild(links[i]);
+			i--;
+		}
+	},
+	initTabMenu:function(menu){
+		var id;
+		var lists=menu.getElementsByTagName('ul');
+		for(var i=0;i<lists.length;i++){
+			if(domtab.cssjs('check',lists[i],domtab.listClass)){
+				var thismenu=lists[i];
+				break;
+			}
+		}
+		if(!thismenu){return;}
+		thismenu.currentSection='';
+		thismenu.currentLink='';
+		var links=thismenu.getElementsByTagName('a');
+		for(i=0;i<links.length;i++){
+			if(!/#/.test(links[i].getAttribute('href').toString())){continue;}
+			id=links[i].href.match(/#(\w.+)/)[1];
+			if(document.getElementById(id)){
+				domtab.addEvent(links[i],'click',domtab.showTab,false);
+				links[i].onclick=function(){return false;} // safari hack
+				domtab.changeTab(document.getElementById(id),0);
+			}
+		}
+		id=links[0].href.match(/#(\w.+)/)[1];
+		if(document.getElementById(id)){
+			domtab.changeTab(document.getElementById(id),1);
+			thismenu.currentSection=id;
+			thismenu.currentLink=links[0];
+			domtab.cssjs('add',links[0].parentNode,domtab.activeClass);
+		}
+	},
+	createPrevNext:function(){
+		// this would be so much easier with innerHTML, darn you standards fetish!
+		var temp=document.createElement('ul');
+		temp.className=domtab.prevNextClass;
+		temp.appendChild(document.createElement('li'));
+		temp.getElementsByTagName('li')[0].appendChild(document.createElement('a'));
+		temp.getElementsByTagName('a')[0].setAttribute('href','#');
+		temp.getElementsByTagName('a')[0].innerHTML=domtab.prevLabel;
+		temp.getElementsByTagName('li')[0].className=domtab.prevClass;
+		temp.appendChild(document.createElement('li'));
+		temp.getElementsByTagName('li')[1].appendChild(document.createElement('a'));
+		temp.getElementsByTagName('a')[1].setAttribute('href','#');
+		temp.getElementsByTagName('a')[1].innerHTML=domtab.nextLabel;
+		temp.getElementsByTagName('li')[1].className=domtab.nextClass;
+		domtab.addEvent(temp.getElementsByTagName('a')[0],'click',domtab.navTabs,false);
+		domtab.addEvent(temp.getElementsByTagName('a')[1],'click',domtab.navTabs,false);
+		// safari fix
+		temp.getElementsByTagName('a')[0].onclick=function(){return false;}
+		temp.getElementsByTagName('a')[1].onclick=function(){return false;}
+		return temp;
+	},
+	navTabs:function(e){
+		var li=domtab.getTarget(e);
+		var menu=li.parentNode.parentNode.menu;
+		var count=li.parentNode.parentNode.i;
+		var section=menu.getElementsByTagName(domtab.contentElements);
+		var links=menu.getElementsByTagName('a');
+		var othercount=(li.parentNode.className==domtab.prevClass)?count-1:count+1;
+		section[count].style.display='none';
+		domtab.cssjs('remove',links[count].parentNode,domtab.activeClass);
+		section[othercount].style.display='block';
+		domtab.cssjs('add',links[othercount].parentNode,domtab.activeClass);
+		var parent=links[count].parentNode.parentNode;
+		parent.currentLink=links[othercount];
+		parent.currentSection=links[othercount].href.match(/#(\w.+)/)[1];
+		domtab.cancelClick(e);
+	},
+	changeTab:function(elm,state){
+		do{
+			elm=elm.parentNode;
+		} while(elm.nodeName.toLowerCase()!=domtab.contentElements)
+		elm.style.display=state==0?'none':'block';
+	},
+	showTab:function(e){
+		var o=domtab.getTarget(e);
+		if(o.parentNode.parentNode.currentSection!=''){
+			domtab.changeTab(document.getElementById(o.parentNode.parentNode.currentSection),0);
+			domtab.cssjs('remove',o.parentNode.parentNode.currentLink.parentNode,domtab.activeClass);
+		}
+		var id=o.href.match(/#(\w.+)/)[1];
+		o.parentNode.parentNode.currentSection=id;
+		o.parentNode.parentNode.currentLink=o;
+		domtab.cssjs('add',o.parentNode,domtab.activeClass);
+		domtab.changeTab(document.getElementById(id),1);
+		document.getElementById(id).focus();
+		domtab.cancelClick(e);
+	},
+/* helper methods */
+	getTarget:function(e){
+		var target = window.event ? window.event.srcElement : e ? e.target : null;
+		if (!target){return false;}
+		if (target.nodeName.toLowerCase() != 'a'){target = target.parentNode;}
+		return target;
+	},
+	cancelClick:function(e){
+		if (window.event){
+			window.event.cancelBubble = true;
+			window.event.returnValue = false;
+			return;
+		}
+		if (e){
+			e.stopPropagation();
+			e.preventDefault();
+		}
+	},
+	addEvent: function(elm, evType, fn, useCapture){
+		if (elm.addEventListener) 
+		{
+			elm.addEventListener(evType, fn, useCapture);
+			return true;
+		} else if (elm.attachEvent) {
+			var r = elm.attachEvent('on' + evType, fn);
+			return r;
+		} else {
+			elm['on' + evType] = fn;
+		}
+	},
+	cssjs:function(a,o,c1,c2){
+		switch (a){
+			case 'swap':
+				o.className=!domtab.cssjs('check',o,c1)?o.className.replace(c2,c1):o.className.replace(c1,c2);
+			break;
+			case 'add':
+				if(!domtab.cssjs('check',o,c1)){o.className+=o.className?' '+c1:c1;}
+			break;
+			case 'remove':
+				var rep=o.className.match(' '+c1)?' '+c1:c1;
+				o.className=o.className.replace(rep,'');
+			break;
+			case 'check':
+				var found=false;
+				var temparray=o.className.split(' ');
+				for(var i=0;i<temparray.length;i++){
+					if(temparray[i]==c1){found=true;}
+				}
+				return found;
+			break;
+		}
+	}
+}
+domtab.addEvent(window, 'load', domtab.init, false);
+	
+	
+	</script>
+	<script type="text/javascript">
+		document.write('<style type="text/css">');    
+		document.write('div.domtab div{display:none;}<');
+		document.write('/s'+'tyle>');    
+    </script>
+</head>
+<body>
+
+<h1><a name="top" id="top">DOMTab - Navigation tabs with CSS and DOMscripting</a></h1>
+<p id="domtabprintview"></p>
+<div class="domtab">
+	<ul class="domtabs">
+		<li><a href="#what">What is DOMtab?</a></li>
+		<li><a href="#how">How to use DOMtab</a></li>
+		<li><a href="#pr">Previous and next links</a></li>
+		<li><a href="#style">How to style DOMtab</a></li>
+		<li><a href="#dl">Download</a></li>
+	</ul>
+	<div>
+		<h2><a name="what" id="what">What is DOMtab?</a></h2>
+		<p>DOMtab is a JavaScript that turns a list of links connected to content
+		sections into a tab interface. The script removes any "back to top" links 
+		in the section and automatically hides all but the first one when the 
+		page is loaded. You can use as many tabbed menus on the page as you want 
+		to.</p>
+		<p><strong>New:</strong> If the URL of the page links directly to one of the tabs it get automatically 
+		highlighted.</p>
+		<p>You can define with an extra class if you want previous and next links 
+		or not.</p>
+		<p>DOMtab uses Unobtrusive JavaScript and does not have any global functions or variables. This page uses DOMtab.</p>		
+		<p><strong>To do:</strong> internal links highlighting tabs (too busy for that now)</p>
+		<p><a href="http://www.wait-till-i.com/index.php?p=242">Comment on the Blog</a></p>
+		<p><a href="https://www.paypal.com/xclick/business=donations%40onlinetools.org&#38;return=http%3A//www.onlinetools.org/ohcheers.php&#38;cancel_return=http%3A//onlinetools.org/">Donations help me buy coffee to stay awake!</a></p>
+		<p><a href="#top">back to menu</a></p>
+	</div>
+	<div>
+		<h2><a name="how" id="how">How to use DOMtab</a></h2>
+		<p>Applying DOMtab to your pages is easy, all you need is to call the 
+		script in the head of the document:</p>
+<pre><code>&#60;script type=&#34;text/javascript&#34; src=&#34;domtab.js&#34;&#62;&#60;/script&#62;</code></pre>
+		<p>DOMtab expects the following classes and element structure to work:</p>
+<pre><code>&#60;div class=&#34;<strong>domtab</strong>&#34;&#62;
+  &#60;ul class=&#34;<strong>domtabs</strong>&#34;&#62;
+    &#60;li&#62;&#60;a href=&#34;#<strong>t1</strong>&#34;&#62;Test 1&#60;/a&#62;&#60;/li&#62;
+    &#60;li&#62;&#60;a href=&#34;#t2&#34;&#62;Test 2&#60;/a&#62;&#60;/li&#62;
+[... and so on ...]
+  &#60;/ul&#62;
+  &#60;div&#62;
+    &#60;h2&#62;&#60;a name=&#34;t1&#34; id=&#34;<strong>t1</strong>&#34;&#62;Proof 1&#60;/a&#62;&#60;/h2&#62;
+    &#60;p&#62;Test to prove that more than one menu is possible&#60;/p&#62;
+    &#60;p&#62;&#60;a href=&#34;#top&#34;&#62;back to menu&#60;/a&#62;&#60;/p&#62;
+  &#60;/div&#62;
+  &#60;div&#62;
+    &#60;h2&#62;&#60;a name=&#34;t2&#34; id=&#34;t2&#34;&#62;Proof 2&#60;/a&#62;&#60;/h2&#62;
+    &#60;p&#62;Test to prove that more than one menu is possible&#60;/p&#62;
+    &#60;p&#62;&#60;a href=&#34;#top&#34;&#62;back to menu&#60;/a&#62;&#60;/p&#62;
+  &#60;/div&#62;
+[... and so on ...]
+&#60;/div&#62;</code></pre>
+<p>The showing and hiding of sections is achieved by reading out the hash data 
+of the link url and retrieving the parent element of the element with the ID the 
+original link points to.</p>
+<p>The links to remove are identified via a pattern in their href attribute, preset to "#top".</p>
+<p>If there is an element with the id <strong>domtabprintview</strong> in the document, DOMtab will
+create a link to show all elements in this one.</p>
+<p>You can change all the settings in the script itself, as all HTML expections are 
+parameters:</p>
+<pre><code>tabClass:'domtab', // class to trigger tabbing
+listClass:'domtabs', // class of the menus
+activeClass:'active', // class of current link
+contentElements:'div', // elements to loop through
+backToLinks:/#top/, // pattern to check "back to top" links
+printID:'domtabprintview', // id of the print all link
+showAllLinkText:'show all content', // text for the print all link
+</code></pre>
+		<p><a href="#top">back to menu</a></p>
+	</div>
+	<div>
+		<h2><a name="pr" id="pr">Previous and next links</a></h2>
+		<p>In this version I added the option to have previous and next links 
+		to navigate around the tabs in addition to clicking them.</p>
+		<p>If you want DOMtab to generate those, all you need to do is to 
+		add the class &#34;doprevnext&#34; in addition to the domtab class to 
+		the div in question:</p>
+<pre><code>&#60;div class=&#34;domtab <strong>doprevnext</strong>&#34;&#62;
+  &#60;ul class=&#34;domtabs&#34;&#62;
+    &#60;li&#62;&#60;a href=&#34;#t1&#34;&#62;Test 1&#60;/a&#62;&#60;/li&#62;
+    &#60;li&#62;&#60;a href=&#34;#t2&#34;&#62;Test 2&#60;/a&#62;&#60;/li&#62;
+    &#60;li&#62;&#60;a href=&#34;#t3&#34;&#62;Test 3&#60;/a&#62;&#60;/li&#62;
+    &#60;li&#62;&#60;a href=&#34;#t4&#34;&#62;Test 4&#60;/a&#62;&#60;/li&#62;
+  &#60;/ul&#62;
+  [... ad nauseam...]
+&#60;/div&#62;</code></pre>
+<p>DOMtab then generates the following link list in each of the sections, automatically 
+removing the previous link in the first and the next in the last section:</p>
+<pre><code>&#60;ul class=&#34;prevnext&#34;&#62;
+  &#60;li class=&#34;prev&#34;&#62;&#60;a href=&#34;#&#34;&#62;previous&#60;/a&#62;&#60;/li&#62;
+  &#60;li class=&#34;next&#34;&#62;&#60;a href=&#34;#&#34;&#62;next&#60;/a&#62;&#60;/li&#62;
+ &#60;/ul&#62;</code></pre>
+<p>Once again, you can override any of these settings in the script's parameters:</p>
+<pre><code>prevNextIndicator:'doprevnext', // class to trigger links
+prevNextClass:'prevnext', // class of the prev and next list
+prevLabel:'previous', // HTML content of the prev link
+nextLabel:'next', // HTML content of the next link
+prevClass:'prev', // class for the prev link
+nextClass:'next', // class for the next link
+</code></pre>
+<p>Both labels are set via innerHTML rather than the proper method :-). This allows you to
+use images if wanted:</p>
+<pre><code>prevLabel:'&#60;img src=&#34;massivebuttonprev.png&#34; alt=&#34;previous&#34; /&#62;',</code></pre>
+		<p><a href="#top">back to menu</a></p>
+	</div>
+	<div>
+		<h2><a name="style" id="style">How to style DOMtab</a></h2>
+		<p>Using the mandatory classes domtab for the main DIV of each menu, 
+		and domtabs for the menu list, you can pretty much style your menus 
+		any way you want to.</p>
+		<p>DOMtab adds the class "active" to the LI containing the currently 
+		active link, to allow you to highlight the currently chosen tab.</p>
+		<p>The previous and next links get classes on their own, which makes 
+		it easy to style them differently.</p>
+		<p>The showing and hiding of the sections is done via JavaScript using 
+		display block and none. It would be pretty easy to replace this with 
+		a styleable show and hide class, if you want to have that, please 
+		contact me on the blog.</p>
+		<p>If you want to avoid the initial flash of all the content until the 
+		script kicks in, you can cheat by adding the following code in the head
+		right after the script element with the domtab call:</p>
+<pre><code>
+&#60;script type=&#34;text/javascript&#34;&#62;
+  document.write('&#60;style type=&#34;text/css&#34;&#62;');    
+  document.write('div.domtab div{display:none;}&#60;');
+  document.write('/s'+'tyle&#62;');    
+&#60;/script&#62;
+</code></pre>
+		<p><a href="#top">back to menu</a></p>
+	</div>
+	<div>
+		<h2><a name="dl" id="dl">Download DOMtab</a></h2>
+<p>DOMtab is provided as-is and I don't take any responsibility for any problems 
+that might occur for using it.</p>
+<p>It is free to use, but not free to resell. If you want to use DOMtab in a 
+commercial site/product please contact me.</p>
+<ul>
+	<li><a href="domtab.zip">DOMtab version 3.1415927</a>
+</ul>
+
+		<p><a href="#top">back to menu</a></p>
+	</div>
+</div>
+<div id="other" class="domtab doprevnext">
+	<ul class="domtabs">
+		<li><a href="#t1">Test 1</a></li>
+		<li><a href="#t2">Test 2</a></li>
+		<li><a href="#t3">Test 3</a></li>
+		<li><a href="#t4">Test 4</a></li>
+	</ul>
+	<h2>You can use content in between the tabs and the sections</h2>
+	<div>
+		<h2><a name="t1" id="t1">Proof 1</a></h2>
+		<p>Test to prove that more than one menu is possible</p>
+		<p><a href="#top">back to menu</a></p>
+	</div>
+	<div>
+		<h2><a name="t2" id="t2">Proof 2</a></h2>
+		<p>Test to prove that more than one menu is possible</p>
+		<p><a href="#top">back to menu</a></p>
+	</div>
+	<div>
+		<h2><a name="t3" id="t3">Proof 3</a></h2>
+		<p>Test to prove that more than one menu is possible</p>
+		<p><a href="#top">back to menu</a></p>
+	</div>
+	<div>
+		<h2><a name="t4" id="t4">Proof 4</a></h2>
+		<p>Test to prove that more than one menu is possible</p>
+		<p><a href="#top">back to menu</a></p>
+	</div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,2 @@
+<html><body bgcolor=black text=gold > <a href=MainPage?question=1 target="_top">Home</a>&nbsp&nbsp&nbsp&nbsp<a href=Logout target="_top">logout</a> <center><font size=6>Welcome to LCC 'C' coding contest </font></center> <font size=4 >Questions: | <a href=MainPage?question=1 target="_top" shape=rect>1</a> |
+</font></body></html>

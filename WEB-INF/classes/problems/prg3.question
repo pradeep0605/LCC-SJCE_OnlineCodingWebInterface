@@ -1,0 +1,67 @@
+#EASY#
+
+Given an integer N, find the nearest powers of 2, such that one of them is less than or equal to N, and the other greater than N, and there are no other power of 2 in between them.
+
+
+
+INPUT:
+
+First line of the input contains an integer T, T test cases follow. (1 <= T <= 10000)
+
+Each test case contains a 64 bit integer N. (1 <= N <= 2<sup>63</sup>-1)
+
+
+
+OUTPUT:
+
+For each test case, output one line 
+
+A B
+
+[A is followed by a 'space', then by B, and finally by a '\n']
+where,
+
+A = 2<sup>x</sup>, and
+B = 2<sup>x+1</sup>
+
+such that A <= N < B, N being the i<sup>th</sup> test case input, 1 <= i <= T
+
+
+
+EXAMPLE:
+
+Input:
+
+4
+10
+255
+264024874276943
+1024
+
+Output:
+
+8 16
+128 256
+140737488355328 281474976710656
+1024 2048
+
+
+
+EXPLANATION:
+
+(test cases 1):
+10
+nearest powers of 2 for 10 are
+8 and 16
+
+Therfore output:
+8 16
+
+(test case 4):
+1024
+nearest powers of 2 for 1024 are
+512, 1024, 2048
+since N itself is 1024, choose the next higher power, i.e 2048
+
+Therfore output:
+1024 2048

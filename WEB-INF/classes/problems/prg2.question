@@ -1,0 +1,105 @@
+#EASY#
+
+A BitVector is a data structure that represents a set of elements, in the form of bits in an integer. If the i<sup>th</sup> bit is 1, the element 'i' is present in the set, otherwise not ( 0 <= i <= 63 ). Let us assume that the Universal Set consists of the elements {0, 1, 2, ..., 63}. Thus, the BitVector can be represented by 64 bits. The LCC Server gives you a set 'A' (a subset of the Universal Set) initially in the form of a BitVector, and asks you to do 'N' operations on Set 'A', among the following four:
+U (Union with another Set),
+I (Intersection with another Set),
+D (Difference with another Set),
+C (Complementation of the current Set).
+
+For each test case, your job is to output the BitVector representation (a 64 bit integer) of the final value of the Set A after N operations.
+
+INPUT:
+First line of the input contains an integer <b>T</b>, T test cases follow. ( 1 <= T <= 10 )
+
+First line of each test case contains two integers
+
+A, the initial BitVector value of Set 'A' (64 bit integer)
+and
+N, the number of operations that follow ( 1 <= N <= 100 )
+
+Each of the operations looks like:
+     
+     O X
+
+     where O is one of the above four operations (Union, Intersection,Difference and Complement), and
+     	   X is the Set (in BitVector form) with which the operation should be performed on the current value of the Set 'A'.
+
+(The complement operation 'C' does not carry any 'X' along with it)
+
+
+
+OUTPUT:
+For each test case,
+Output the final BitVector form of the Set 'A', i.e after performing the mentioned 'N' operations on it.
+
+
+
+EXAMPLE:
+
+Input:
+2
+40831463814103344 6
+U 72082126891647104
+I 292742840591843472
+D 153168566928296528
+C
+I 190604739166606469
+U 130
+1024 2
+U 256
+I 1024
+
+Output:
+190604739166606471
+1024
+
+
+
+EXPLANATION:
+
+(Test Case 1)
+
+A = 40831463814103344
+A = 0000000010010001000100000000000000000000010011001000000100110000 (in bits representation)
+
+N = 6
+
+6 operations:
+
+1) Union:
+B<sub>1</sub> = 72082126891647104
+B<sub>1</sub> = 0000000100000000000101100101000000000000000010000000000010000000
+
+Now, 
+A = A U B<sub>1</sub>
+  = 0000000110010001000101100101000000000000010011001000000110110000
+  = 112895998519181744
+
+2) A = A I B<sub>2</sub>
+
+3) A = A D B<sub>3</sub>
+
+4) A = A<sup>C</sup>
+
+5) A = A I B<sub>5</sub>
+
+6) A = A U B<sub>6</sub>
+
+So, the final value of A is:
+A = 0000001010100101001010100000000000011010100010000001010010000111
+A = 190604739166606471 (output)
+
+
+(Test Case 2)
+
+A = 1024
+N = 2
+
+2 operations:
+
+1) A = A U B<sub>1</sub>
+
+2) A = A I B<sub>2</sub>
+
+So, the final value of A is:
+A = 1024

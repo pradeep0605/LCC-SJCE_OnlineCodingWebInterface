@@ -1,0 +1,22 @@
+#include<stdio.h>
+#include<string.h>
+#include<stdlib.h>
+
+
+int main(int argc, char ** argv)
+{
+	char arr[1000]={0};
+	if(n>2)
+	{
+		strcpy(arr,"sort -s -t \"|\" --key=");
+		strcat(arr, argv[1]);
+		strcat(arr," LeaderBoardTemp | sort -r -s -t \"|\" --key=");
+		strcat(arr,argv[2]);
+		strcat(arr,",");
+		strcat(arr,argv[2]);
+		strcat(arr," >  LeaderBoardTemp2");
+		printf("%s\n",arr);
+		system(arr);
+	}
+	return 0;
+}

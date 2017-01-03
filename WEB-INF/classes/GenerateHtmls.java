@@ -1,0 +1,170 @@
+import java.io.*;
+import java.lang.*;
+import java.util.*;
+import javax.servlet.*;
+import javax.servlet.http.*;
+import javax.swing.*;
+
+
+
+public class GenerateHtmls extends HttpServlet
+{
+
+	String s="/usr/share/tomcat7/webapps/SJCE50/WEB-INF/classes/";
+	String readFromFile(String filepath)
+	{
+		byte barr[]=null;
+		try
+		{
+			FileInputStream in=new FileInputStream(filepath);
+			barr=new byte[in.available()];
+			in.read(barr);
+		}catch(Exception e){}
+		return (new String(barr));		
+	}
+	
+	public void doGet(HttpServletRequest req, HttpServletResponse res) 
+	{
+		PrintWriter pw;
+		try
+		{	
+			pw=res.getWriter();
+			res.setContentType("text|html");
+			String NumberOfQuestions=readFromFile(s + "problems/NumberOfProblems");
+			NumberOfQuestions=NumberOfQuestions.trim();
+			int n=Integer.parseInt(NumberOfQuestions);
+			String generalHeaders="<html><body text=gold > <a href=Welcome target=\"_blank\">Home" + 
+			"</a>&nbsp&nbsp&nbsp&nbsp<a href=AboutUs.html target=\"_blank\">About Us</a>&nbsp&nbsp&nbsp&nbsp"+
+			"<a href=LeaderBoard target=\"_blank\">Leader Board</a>&nbsp&nbsp&nbsp&nbsp"+
+			" <a href=Logout target=\"_top\">logout</a> <center>" +
+			"<font size=6>" + readFromFile(s+"problems/ContestName") +"</font></center> <font size=4 >" +
+			"Questions: |"; 
+			for(int i=0;i<n;i++)
+			{
+				String questionContents=readFromFile(s+"problems/prg" + (i+1) + ".question");
+				String questionhtml="<html><head><title>Question " + (i+1) + 
+				"</title></head><FRAMESET border=0 rows=\"15%, 85%\" class=\"bg\" style=\"background: url(lop2.png);" +
+				"background-size:100% 100%;\" >" +
+				"<FRAME src=\"GeneralHeader.html\"></FRAME><FRAMESET cols=\"75%, 25%\">	<FRAME src=\"prg"+(i+1)+ ".question.html\">" +
+				"</FRAME><FRAME src=\"SubmissionStack.html\"></FRAME></FRAMESET></FRAMESET></html>";
+				
+				questionContents= format(questionContents,i+1);
+				FileOutputStream fout=new FileOutputStream("/usr/share/tomcat7/webapps/SJCE50/prg" + (i+1) + ".question.html");
+				fout.write( new String("<html><head> </head> <body text=white>" 
+				+ questionContents +
+				"<form method=post action=\"SubmitProgram\" target=\"_blank\"><input type=hidden value=" + (i+1)+" name=\"QNO\"> <center>" +
+				"<input type=submit id=\"Submit Program\" value=\"Submit Program\" style=\"height:60px; width=500px; font-size:250%\" />" + 
+				"<center></form> </body></html>").getBytes());
+				fout.close();
+				
+				FileOutputStream fout2=new FileOutputStream(s+"problems/prg" + (i+1) + ".html");
+				fout2.write(questionhtml.getBytes());
+				fout2.close();
+				generalHeaders=generalHeaders + " <a href=MainPage?question=" +(i+1) +" target=\"_top\" shape=rect>"+(i+1) +"</a> |\n";		
+			}
+				generalHeaders=generalHeaders + "</font></body></html>";
+				(new FileOutputStream("/usr/share/tomcat7/webapps/SJCE50/GeneralHeader.html")).write(generalHeaders.getBytes());
+				
+				String SubmissionStack="<META HTTP-EQUIV=\"Refresh\" CONTENT=\"10\"><html><body text=white><center>"+
+				"<h1>Submission Stack</h1></center><h5><center><table border=2 cellspcacing=2><tr><td>"+
+				"<center><font size=2>===========</font> </center></td></tr></table> </center><h5></body></html>";
+				(new FileOutputStream("/usr/share/tomcat7/webapps/SJCE50/SubmissionStack.html")).write(SubmissionStack.getBytes());
+
+				pw.print("<html><body bgcolor=black text=white> <h1><center> All " + n + 
+				" .html file(s) are generated</center></h1></body></html>");
+				pw.close();
+				givePermission();
+		}catch(Exception e)
+		{
+			try{
+			pw=res.getWriter();
+			pw.print("<html><body><h1> error:"+e.toString()+ "</h1></body></html>");
+			pw.close();}catch(Exception ex){}
+		}
+	}
+	
+	void givePermission()
+	{	
+		try
+		{
+			ProcessBuilder pb=new ProcessBuilder("/usr/share/tomcat7/webapps/SJCE50/permission.sh");
+			pb.start();
+		}catch(Exception e){}
+	}
+	String format(String QContents,int QNO)
+	{
+		QContents=QContents.replaceAll("\n","<br>");
+		StringBuffer result=new StringBuffer(QContents);
+		if(result.indexOf("#EASY#") !=-1)
+		{   
+			String points= readFromFile(s+"problems/prg" + QNO + ".SubmissionPoints").trim();
+			int n=Integer.parseInt(points);
+			String temp="";
+			for(int i=0;i<n;i++)
+				temp=temp + "<img src=star.png width=50 height=50></img>"; 
+            
+			result.insert(result.indexOf("#EASY#")+6,"&nbsp&nbsp" + temp+ "<br><br><font color=orange>Timelimit:" +
+			readFromFile(s+"problems/prg"+QNO+".timeout").trim() +" S</font></h1></center></font>");
+			result.insert(result.indexOf("#EASY#"),"<font color=gold><h1><center> Qno:" + QNO + "&nbsp;");
+		}   
+		
+		if(result.indexOf("#MEDIUM#") !=-1)
+		{
+			String points= readFromFile(s+"problems/prg" + QNO + ".SubmissionPoints").trim();
+			int n=Integer.parseInt(points);
+			String temp="";
+			for(int i=0;i<n;i++)
+				temp=temp + "<img src=star.png width=50 height=50></img>"; 
+ 			
+			result.insert(result.indexOf("#MEDIUM#")+8,"&nbsp&nbsp" + temp+ "<br><br><font color=orange>Timelimit:" +
+			readFromFile(s+"problems/prg"+QNO+".timeout").trim() +" S</font></h1></center></font>");
+			result.insert(result.indexOf("#MEDIUM#"),"<font color=gold><h1><center> Qno:" + QNO + "&nbsp;");
+		}
+		if(result.indexOf("#HARD#") !=-1)
+		{
+			String points= readFromFile(s+"problems/prg" + QNO + ".SubmissionPoints").trim();
+			int n=Integer.parseInt(points);
+			String temp="";
+			for(int i=0;i<n;i++)
+				temp=temp + "<img src=star.png width=50 height=50></img>"; 
+
+			result.insert(result.indexOf("#HARD#")+6,"&nbsp&nbsp" + temp+ "<br><br><font color=orange>Timelimit:" +
+			readFromFile(s+"problems/prg"+QNO+".timeout").trim() +" S</font></h1></center></font>");
+			result.insert(result.indexOf("#HARD#"),"<font color=gold><h1><center> Qno:" + QNO + "&nbsp;");
+		}
+		
+		if(result.indexOf("INPUT:") !=-1)
+		{
+			result.insert(result.indexOf("INPUT:")+6,"</h2></font>");
+			result.insert(result.indexOf("INPUT:"),"<font color=green><h2>");
+		}
+		if(result.indexOf("Input:") !=-1)
+		{
+			result.insert(result.indexOf("Input:")+6,"</b></font>");
+			result.insert(result.indexOf("Input:"),"<font color=green><b>");
+		}
+		if(result.indexOf("OUTPUT:") !=-1)
+		{
+			result.insert(result.indexOf("OUTPUT:")+7,"</h2></font>");
+			result.insert(result.indexOf("OUTPUT:"),"<font color=green><h2>");
+		}
+		if(result.indexOf("Output:") !=-1)
+		{
+			result.insert(result.indexOf("Output:")+7,"</b></font>");
+			result.insert(result.indexOf("Output:"),"<font color=green><b>");
+		}
+		if(result.indexOf("EXAMPLE:") !=-1)
+		{
+			result.insert(result.indexOf("EXAMPLE:")+8,"</h2></font>");
+			result.insert(result.indexOf("EXAMPLE:"),"<font color=orange><h2>");
+		}
+		if(result.indexOf("EXPLANATION:") !=-1)
+		{
+			result.insert(result.indexOf("EXPLANATION:")+12,"</h2></font>");
+			result.insert(result.indexOf("EXPLANATION:"),"<font color=orange><h2>");
+		}
+		
+		return result.toString();
+	}
+}
+

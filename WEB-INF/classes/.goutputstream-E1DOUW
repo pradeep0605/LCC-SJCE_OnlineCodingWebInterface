@@ -1,0 +1,112 @@
+import java.io.*;
+import java.lang.*;
+import java.util.*;
+import javax.servlet.*;
+import javax.servlet.http.*;
+import javax.swing.*;
+
+
+
+public class LeaderBoard extends HttpServlet
+{
+	String s="/usr/share/tomcat7/webapps/SJCE50/WEB-INF/classes/";
+	static long time;
+	static	String LeaderBoard="";
+	String readFromFile(String filepath)
+	{
+		byte barr[]=null;
+		try
+		{
+			FileInputStream in=new FileInputStream(filepath);
+			barr=new byte[in.available()];
+			in.read(barr);
+		}catch(Exception e){}
+		return (new String(barr));		
+	}
+	
+	void writeToFile(String filename, String contents)
+	{
+	  try
+	  {
+		FileOutputStream fout=new FileOutputStream(filename);
+		fout.write(contents.getBytes());
+		fout.close();
+	   } catch(Exception e){}
+	}
+	
+	public void doGet(HttpServletRequest req, HttpServletResponse res) 
+	{
+		PrintWriter pw;
+		try
+		{	
+			res.setContentType("text|html");
+			pw=res.getWriter();
+
+			if(time==0)
+				time=System.currentTimeMillis()/1000;
+			else
+			{
+				long curtime=System.currentTimeMillis()/1000;
+				if((curtime-time) >=5 )
+				{
+					generateLeaderBoard();
+					time=System.currentTimeMillis()/1000;	
+					givePermission();
+				}
+					pw.print(LeaderBoard);
+			}
+			
+			pw.print("</center></body></html>");
+			pw.close();
+		}catch(Exception e)
+		{
+			try{
+			pw=res.getWriter();
+			pw.print("<html><body><h1> error:"+e.toString()+ "</h1></body></html>");
+			pw.close();}catch(Exception ex){}
+		}
+	}
+	
+	void generateLeaderBoard()
+	{
+			String contents="";
+			LeaderBoard="";
+			LeaderBoard="<META HTTP-EQUIV=\"Refresh\" CONTENT=\"60\"><html><body bgcolor=black text=white>" +
+			"<center><h1> Leader Board </h1> " +
+			"<table border=\"1\" cellspacing=5 cellpadding=10> <th> No. </th> <th> Team Name </th>" ;
+			int noques=Integer.parseInt(readFromFile(s+"problems/NumberOfProblems").trim());
+			for(int i=0;i<noques;i++)
+				 LeaderBoard = LeaderBoard + "<th> Question \"" +  (i+1)  +"\" </th>\n" ;
+			
+			LeaderBoard = LeaderBoard + "<th> <img src=star.png width=30 height=30> </th> <th> Total Points </th>" ;
+			StringTokenizer st=new StringTokenizer(readFromFile(s+ "5haD0w") , "\n");
+			for(int i=0; st.hasMoreElements();i++)
+			{
+				String CurrentToken=st.nextToken();
+				String CurrentTeam = CurrentToken.substring((CurrentToken.lastIndexOf(":") +1));
+				String CurrentTeamSolvedProblems= readFromFile(s+CurrentTeam + "/ProblemsSolved").trim();
+				int n=Integer.parseInt(readFromFile(s+"problems/NumberOfProblems").trim());
+				contents= CurrentTeam+"|";
+				
+				for(int j=0;j<n;j++)
+				{
+					if(CurrentTeamSolvedProblems.indexOf("" + (j+1)	+" ") != -1)
+						contents=contents + "<font color=green> Solved !| </font>";
+					else
+						contents=contents + "<font color=orange> XXXXX !| </font>";
+				}
+				contents= contents + readFromFile(s+CurrentTeam + "/SubmissionPoints").trim() + "|";				
+				contents= contents + readFromFile(s+CurrentTeam + "/points").trim() ;				
+			}
+						
+	}
+	
+	void givePermission()
+	{
+		try
+		{
+			ProcessBuilder pb=new ProcessBuilder("/usr/share/tomcat7/webapps/SJCE50/permission.sh");
+			pb.start();
+		}catch(Exception e){}
+	}
+}

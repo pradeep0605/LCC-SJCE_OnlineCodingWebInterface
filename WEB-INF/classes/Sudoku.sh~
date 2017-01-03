@@ -1,0 +1,4 @@
+sudo -i
+jamadagni
+cd /home/kashyap/pradeep/sudoku\ solver
+java Sudoku

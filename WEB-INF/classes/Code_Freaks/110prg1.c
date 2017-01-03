@@ -1,0 +1,1 @@
+<img src=compileerror.png widht=20 height=20>
